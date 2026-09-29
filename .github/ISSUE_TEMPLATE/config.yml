@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Утечка токена
+    url: https://github.com/tcpavel/platform22-partner-api/blob/main/SECURITY.md
+    about: Не создавайте issue — напишите менеджеру по инструкции из SECURITY.md.

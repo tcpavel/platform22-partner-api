@@ -1,0 +1,35 @@
+name: Запрос боевого доступа
+description: Интеграция проверена в песочнице — нужен боевой токен.
+title: "[Боевой доступ] "
+labels: [prod-access]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Токен в этой форме не передаётся: мы отправим его вашему контактному лицу по защищённому каналу.
+  - type: input
+    id: company
+    attributes:
+      label: Компания или проект
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Проверено в песочнице
+      options:
+        - label: открытие, долив и закрытие проходят (`opened`, `averaged`, `closed`)
+          required: true
+        - label: при потере ответа сигнал повторяется, `duplicate_ignored` обрабатывается
+          required: true
+        - label: "`400` и `403` не повторяются бесконечно"
+          required: true
+        - label: на `direction_mismatch` и `no_open_position` срабатывает алерт
+          required: true
+        - label: после рестарта открытые позиции закрываются сигналом `close`
+          required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Комментарий
+      description: Сколько стратегий и тикеров планируете, ожидаемая частота сигналов.

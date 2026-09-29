@@ -1,0 +1,255 @@
+openapi: 3.1.0
+info:
+  title: Platform22 Signals API
+  version: 1.0.0
+  summary: Сигналы партнёров на открытие, долив и закрытие позиций.
+  description: |
+    Партнёр передаёт торговые сигналы стратегии: **открыть**, **долить** и **закрыть** позицию.
+    Сигналы исполняются на счетах подписчиков стратегии **по рынку** — стоп-лоссов и тейк-профитов
+    нет намеренно: выход из позиции делается только сигналом `close`.
+
+    Позиция определяется парой «стратегия + тикер»; по паре одновременно открыта одна позиция.
+
+    Сигнал, который обработан, но отброшен (повтор, рассинхрон), возвращает **HTTP 200** —
+    итог смотрите в поле `result`.
+
+    Полное руководство: https://github.com/tcpavel/platform22-partner-api
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: https://api-dev.pf22.ru
+    description: Тестовый контур (песочница)
+  - url: https://api.platform22.pro
+    description: Боевой контур
+security:
+  - bearerAuth: []
+tags:
+  - name: Positions
+    description: Сигналы по позициям
+paths:
+  /partner/v1/positions/open:
+    post:
+      tags: [Positions]
+      operationId: openPosition
+      summary: Открыть позицию или долить в неё
+      description: |
+        Открывает позицию по паре `strategy_id` + `ticker`.
+
+        Если позиция по паре уже открыта:
+        - без `averaging` — сигнал отбрасывается: `duplicate_ignored`, `reason: position_already_open`;
+        - с `averaging: true` — это долив: `averaged`. Повтор того же `open_signal_id` отбрасывается
+          (`duplicate_ignored`, `reason: same_open_signal_id`);
+        - в противоположном направлении — `direction_mismatch`, ничего не записывается.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OpenSignal' }
+            examples:
+              open:
+                summary: Открытие
+                value:
+                  strategy_id: 6
+                  ticker: BTCUSDT
+                  direction: long
+                  open_price: '65000.00'
+                  quantity: '1'
+                  open_signal_id: 100000001
+                  timeframe: 240
+                  open_indicator: ema
+                  open_time: '2026-10-01T10:00:00Z'
+              averaging:
+                summary: Долив
+                value:
+                  strategy_id: 6
+                  ticker: BTCUSDT
+                  direction: long
+                  open_price: '64000.00'
+                  quantity: '1'
+                  averaging: true
+                  open_signal_id: 100000002
+      responses:
+        '200':
+          description: Сигнал обработан. Итог — в `result`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SignalResult' }
+              examples:
+                opened:
+                  value: { success: true, result: opened, trade_id: 3f0c6a1e-5b7d-4b8e-9f63-2d1c0a7e4b52 }
+                averaged:
+                  value: { success: true, result: averaged, trade_id: 3f0c6a1e-5b7d-4b8e-9f63-2d1c0a7e4b52 }
+                duplicate:
+                  value: { success: true, result: duplicate_ignored, reason: position_already_open, trade_id: 3f0c6a1e-5b7d-4b8e-9f63-2d1c0a7e4b52 }
+                mismatch:
+                  value: { success: true, result: direction_mismatch, trade_id: 3f0c6a1e-5b7d-4b8e-9f63-2d1c0a7e4b52 }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+  /partner/v1/positions/close:
+    post:
+      tags: [Positions]
+      operationId: closePosition
+      summary: Закрыть позицию
+      description: |
+        Закрывает позицию по паре `strategy_id` + `ticker` целиком (частичного закрытия нет).
+        Если открытой позиции нет — `no_open_position`.
+
+        Срока годности у сигнала нет: `close` нужно отправить, даже если он опоздал, — иначе
+        позиция у подписчиков останется открытой.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CloseSignal' }
+            example:
+              strategy_id: 6
+              ticker: BTCUSDT
+              close_price: '66200.00'
+              close_signal_id: 100000003
+              close_indicator: rsi
+              close_time: '2026-10-01T14:30:00Z'
+      responses:
+        '200':
+          description: Сигнал обработан. Итог — в `result`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SignalResult' }
+              examples:
+                closed:
+                  value: { success: true, result: closed, trade_id: 3f0c6a1e-5b7d-4b8e-9f63-2d1c0a7e4b52 }
+                noPosition:
+                  value: { success: true, result: no_open_position }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/TooManyRequests' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Токен партнёра. Отдельный для тестового и боевого контура.
+  schemas:
+    Decimal:
+      type: string
+      pattern: '^\d+(\.\d{1,8})?$'
+      description: Положительное десятичное число строкой, до 8 знаков после точки.
+      examples: ['65000.00']
+    SignalId:
+      type: integer
+      minimum: 1
+      maximum: 18446744073709551615
+      description: Ваш уникальный номер сигнала (беззнаковое 64-битное целое).
+    OpenSignal:
+      type: object
+      required: [strategy_id, ticker, direction, open_price, quantity]
+      properties:
+        strategy_id:
+          type: integer
+          minimum: 1
+          description: Номер стратегии. Только стратегии, привязанные к вашему токену.
+        ticker:
+          type: string
+          maxLength: 32
+          description: Полный символ пары, например `BTCUSDT`.
+          examples: [BTCUSDT]
+        direction:
+          type: string
+          enum: [long, short]
+        open_price:
+          $ref: '#/components/schemas/Decimal'
+          description: Цена на момент сигнала.
+        quantity:
+          $ref: '#/components/schemas/Decimal'
+          description: Объём сигнала. Если стратегия не управляет объёмом — `"1"`.
+        averaging:
+          type: boolean
+          default: false
+          description: '`true` — долив в уже открытую позицию. Без флага повтор `open` отбрасывается.'
+        open_signal_id:
+          $ref: '#/components/schemas/SignalId'
+        timeframe:
+          type: integer
+          minimum: 1
+          description: Таймфрейм в минутах (240 = 4h).
+        open_indicator:
+          type: string
+          maxLength: 16
+        open_time:
+          type: string
+          format: date-time
+          description: Время сигнала. По умолчанию — время приёма.
+    CloseSignal:
+      type: object
+      required: [strategy_id, ticker, close_price]
+      properties:
+        strategy_id:
+          type: integer
+          minimum: 1
+        ticker:
+          type: string
+          maxLength: 32
+          description: Тот же тикер, что при открытии.
+        close_price:
+          $ref: '#/components/schemas/Decimal'
+          description: Цена на момент сигнала.
+        close_signal_id:
+          $ref: '#/components/schemas/SignalId'
+        close_indicator:
+          type: string
+          maxLength: 16
+        close_time:
+          type: string
+          format: date-time
+          description: Время сигнала. По умолчанию — время приёма.
+    SignalResult:
+      type: object
+      required: [success, result]
+      properties:
+        success:
+          type: boolean
+          const: true
+        result:
+          type: string
+          enum: [opened, averaged, closed, duplicate_ignored, direction_mismatch, no_open_position]
+        reason:
+          type: string
+          enum: [position_already_open, same_open_signal_id, same_fill]
+          description: Только для `duplicate_ignored`.
+        trade_id:
+          type: string
+          format: uuid
+          description: Идентификатор позиции на нашей стороне. Нет у `no_open_position`.
+    Error:
+      type: object
+      required: [success]
+      properties:
+        success:
+          type: boolean
+          const: false
+        error:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+  responses:
+    ValidationError:
+      description: Ошибка в теле запроса. Повторять без исправления бессмысленно.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { success: false, errors: { strategy_id: [Unknown strategy] } }
+    Unauthorized:
+      description: Нет токена, токен неверный или отключён.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example: { success: false, error: Unauthorized }
+    TooManyRequests:
+      description: Превышен лимит (120 запросов в минуту на токен). Повторите позже.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }

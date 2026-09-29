@@ -1,0 +1,29 @@
+name: Вопрос по интеграции
+description: Что-то непонятно в API или поведение отличается от документации.
+title: "[Вопрос] "
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ Репозиторий публичный. **Не указывайте токены**, номера счетов и другие секреты.
+  - type: dropdown
+    id: env
+    attributes:
+      label: Контур
+      options: [Тестовый (api-dev.pf22.ru), Боевой (api.platform22.pro)]
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Вопрос
+      description: Что вы делаете и что ожидаете получить.
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: Запрос и ответ
+      description: Тело запроса и ответ сервера — без заголовка Authorization.
+      render: json

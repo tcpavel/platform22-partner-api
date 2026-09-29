@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Platform22 Signals API</title>
+  <meta name="description" content="Справочник API сигналов Platform22 для партнёров">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #ffffff; }
+    .topbar { display: flex; align-items: center; gap: 12px; padding: 14px 24px; background: #0b1020; color: #f5f7ff; font: 600 15px Inter, system-ui, sans-serif; }
+    .topbar b { color: #22d3a6; letter-spacing: 2px; }
+    .topbar a { margin-left: auto; color: #aab4d4; text-decoration: none; font-weight: 400; }
+    .topbar a:hover { color: #f5f7ff; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <b>PLATFORM22</b> Signals API
+    <a href="https://github.com/tcpavel/platform22-partner-api">GitHub →</a>
+  </div>
+  <div id="redoc"></div>
+  <script src="vendor/redoc.standalone.js"></script>
+  <script>
+    Redoc.init('openapi.yaml', {
+      expandResponses: '200',
+      requiredPropsFirst: true,
+      pathInMiddlePanel: true,
+      theme: {
+        colors: { primary: { main: '#12a883' } },
+        typography: {
+          fontFamily: 'Inter, system-ui, sans-serif',
+          headings: { fontFamily: 'Inter, system-ui, sans-serif', fontWeight: '700' },
+          code: { fontFamily: '"JetBrains Mono", ui-monospace, monospace' }
+        },
+        sidebar: { backgroundColor: '#f6f8fc' },
+        rightPanel: { backgroundColor: '#0b1020' }
+      }
+    }, document.getElementById('redoc'));
+  </script>
+</body>
+</html>

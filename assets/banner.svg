@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Platform22 — Signals API для партнёров">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#101a33"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3a6" stop-opacity="0"/>
+      <stop offset="0.35" stop-color="#22d3a6"/>
+      <stop offset="1" stop-color="#4f8cff"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="320" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="320" rx="24" fill="url(#grid)"/>
+
+  <!-- price line with open / close markers -->
+  <polyline points="700,236 760,214 810,226 860,176 915,190 965,138 1020,152 1075,104 1130,118 1190,82"
+            fill="none" stroke="url(#line)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15" font-weight="600">
+    <circle cx="810" cy="226" r="9" fill="#22d3a6"/>
+    <rect x="770" y="244" width="80" height="28" rx="8" fill="#22d3a6" fill-opacity="0.14" stroke="#22d3a6" stroke-opacity="0.5"/>
+    <text x="810" y="263" text-anchor="middle" fill="#22d3a6">OPEN</text>
+    <circle cx="1020" cy="152" r="9" fill="#4f8cff"/>
+    <rect x="980" y="170" width="80" height="28" rx="8" fill="#4f8cff" fill-opacity="0.14" stroke="#4f8cff" stroke-opacity="0.5"/>
+    <text x="1020" y="189" text-anchor="middle" fill="#8fb3ff">+ADD</text>
+    <circle cx="1190" cy="82" r="9" fill="#f5f7ff"/>
+    <rect x="1146" y="100" width="88" height="28" rx="8" fill="#ffffff" fill-opacity="0.08" stroke="#ffffff" stroke-opacity="0.35"/>
+    <text x="1190" y="119" text-anchor="middle" fill="#f5f7ff">CLOSE</text>
+  </g>
+
+  <g font-family="Inter, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+    <text x="72" y="118" font-size="30" font-weight="600" fill="#22d3a6" letter-spacing="3">PLATFORM22</text>
+    <text x="70" y="182" font-size="58" font-weight="800" fill="#f5f7ff">Signals API</text>
+    <text x="72" y="228" font-size="26" fill="#aab4d4">Сигналы на открытие и закрытие сделок</text>
+    <text x="72" y="264" font-size="20" fill="#6f7aa0">REST · JSON · Bearer · исполнение по рынку</text>
+  </g>
+</svg>
